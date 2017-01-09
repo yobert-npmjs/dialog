@@ -1,0 +1,20 @@
+{
+  "name": "yobert-dialog",
+  "description": "Simple dialog box builder",
+  "author": "yobert@gmail.com",
+  "version": "0.0.1",
+  "main": "dialog.js",
+  "dependencies": {
+  	"yobert-tools": "0.0.2",
+  	"yobert-append": "0.0.1",
+  	"yobert-tag": "0.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yobert-npmjs/dialog"
+  },
+  "bugs": {
+    "url": "https://github.com/yobert-npmjs/dialog/issues"
+  },
+  "license": "MIT"
+}
