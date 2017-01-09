@@ -21,7 +21,7 @@ function Dialog(title, body, buttons, options) {
 		append(inner, this.dom_body);
 	}
 
-	if(buttons && tools.is_array(buttons) && buttons.length) {
+	if(buttons && buttons.length) {
 		this.dom_buttons = this.buildButtons(buttons);
 		append(inner, this.dom_buttons);
 	}
