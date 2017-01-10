@@ -2,6 +2,37 @@ var tools = require('yobert-tools');
 var tag = require('yobert-tag');
 var append = require('yobert-append');
 
+function window_size() {
+	var wx, wy;
+	if (window.innerWidth) {
+		wx = window.innerWidth;
+		wy = window.innerHeight;
+	}
+	if (!wx && document.documentElement) {
+		wx = document.documentElement.clientWidth;
+		wy = document.documentElement.clientHeight;
+	}
+	if (!wx) {
+		var body = document.body || document.getElementsByTagName('body')[0];
+		if (body) {
+			if (body.clientWidth) {
+				wx = body.clientWidth;
+				wy = body.clientHeight;
+			} else if (body.offsetWidth) {
+				wx = body.offsetWidth;
+				wy = body.offsetHeight;
+			}
+		}
+	}
+
+	return [wx, wy];
+}
+
+function element_size(e) {
+	var rect = e.getBoundingClientRect();
+	return [rect.width, rect.height];
+}
+
 function Dialog(title, body, buttons, options) {
 	if(!options)
 		options = {};
@@ -38,22 +69,15 @@ function Dialog(title, body, buttons, options) {
 		this.modal_click_cb = function() {
 			that.close();
 		};
-		tools.listener_add(this.dom_modal, 'click', this.modal_click_cb);
+		tools.listen(this.dom_modal, 'click', this.modal_click_cb);
 		document.body.appendChild(this.dom_modal);
 	}
 
 	document.body.appendChild(div);
 
-	this.keydown_cb = function(e) {
-		if(tools.get_key(e) == 27) {
-			tools.event_stop(e);
-			that.close();
-		}
-
-		return true;
-	};
-
-	tools.listener_add(window, 'keydown', this.keydown_cb);
+	this.keydown_cb = tools.listen_key(window, 27, function() {
+		that.close();
+	})
 
 	this.topLeft();
 	this.fitToWindow();
@@ -101,24 +125,26 @@ Dialog.prototype.buildButtons = function(buttons) {
 		t.close();
 	};
 
-	tools.array_each(buttons, function(b) {
-		if(tools.is_string(b))
-			b = {'value': b};
+	for(var i = 0; i < buttons.length; i++) {
+		function(b){
+			if(typeof b === "string")
+				b = {'value': b};
 
-		var i = tag('input', {'type':'button', 'value':b.value});
-		var oc = b.onclick;
-		if(oc) {
-			tools.listener_add(i, 'click', function() {
-				if(!oc.call(t))
-					t.close();
-			});
-		} else {
-			tools.listener_add(i, 'click', close);
-		}
+			var i = tag('input', {'type':'button', 'value':b.value});
+			var oc = b.onclick;
+			if(oc) {
+				tools.listen(i, 'click', function() {
+					if(!oc.call(t))
+						t.close();
+				});
+			} else {
+				tools.listen(i, 'click', close);
+			}
 
-		append(div, i);
-		append(div, ' ');
-	});
+			append(div, i);
+			append(div, ' ');
+		}(buttons[i]);
+	}
 
 	return div;
 }
@@ -130,12 +156,12 @@ Dialog.prototype.fitToWindow = function() {
 	this.dom.style.left = '0px';
 	this.dom.style.top = '0px';
 
-	var window_xy = tools.window_size();
+	var window_xy = window_size();
 
 	var ds, bs, spare;
 
-	ds = tools.element_size(this.dom);
-	bs = tools.element_size(this.dom_body);
+	ds = element_size(this.dom);
+	bs = element_size(this.dom_body);
 	spare = [
 		ds[0] - bs[0],
 		ds[1] - bs[1]
@@ -161,7 +187,7 @@ Dialog.prototype.topLeft = function() {
 
 Dialog.prototype.center = function() {
 	var div = this.dom;
-	var window_xy = tools.window_size();
+	var window_xy = window_size();
 
 	var l = Math.floor(window_xy[0]*0.5 - div.clientWidth*0.5);
 	var t = Math.floor(window_xy[1]*0.5 - div.clientHeight*0.5);
@@ -181,13 +207,13 @@ Dialog.prototype.close = function() {
 		return;
 
 	if(this.keydown_cb) {
-		tools.listener_remove(window, 'keydown', this.keydown_cb);
+		tools.unlisten(window, 'keydown', this.keydown_cb);
 		delete this.keydown_cb;
 	}
 
 	if(this.dom_modal) {
 		if(this.modal_click_cb) {
-			tools.listener_remove(this.dom_modal, 'click', this.modal_click_cb)
+			tools.unlisten(this.dom_modal, 'click', this.modal_click_cb)
 			delete this.modal_click_cb;
 		}
 		_modal_close(this.dom_modal);
