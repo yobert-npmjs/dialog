@@ -126,7 +126,10 @@ Dialog.prototype.buildButtons = function(buttons) {
 	};
 
 	for(var i = 0; i < buttons.length; i++) {
-		function(b){
+		(function(b){
+			if(!b)
+				return
+
 			if(typeof b === "string")
 				b = {'value': b};
 
@@ -143,7 +146,7 @@ Dialog.prototype.buildButtons = function(buttons) {
 
 			append(div, i);
 			append(div, ' ');
-		}(buttons[i]);
+		})(buttons[i]);
 	}
 
 	return div;

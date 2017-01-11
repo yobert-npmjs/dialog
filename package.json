@@ -2,7 +2,7 @@
   "name": "yobert-dialog",
   "description": "Simple dialog box builder",
   "author": "yobert@gmail.com",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "main": "dialog.js",
   "dependencies": {
   	"yobert-tools": "0.0.2",
