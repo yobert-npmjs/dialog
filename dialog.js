@@ -32,7 +32,7 @@ function Dialog(title, body, buttons, options) {
 		tools.event_stop_prop(evt);
 	});
 
-	var div = tag('div', {'style':'position: fixed; top: 0; left: 0; bottom: 0; right: 0; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border: 10px solid blue; box-sizing: border-box;'}, outer);
+	var div = tag('div', {'style':'position: fixed; top: 0; left: 0; bottom: 0; right: 0; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center;'}, outer);
 	this.dom = div;
 
 	this.onclose = options.onclose;
