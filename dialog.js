@@ -2,45 +2,14 @@ var tools = require('yobert-tools');
 var tag = require('yobert-tag');
 var append = require('yobert-append');
 
-function window_size() {
-	var wx, wy;
-	if (window.innerWidth) {
-		wx = window.innerWidth;
-		wy = window.innerHeight;
-	}
-	if (!wx && document.documentElement) {
-		wx = document.documentElement.clientWidth;
-		wy = document.documentElement.clientHeight;
-	}
-	if (!wx) {
-		var body = document.body || document.getElementsByTagName('body')[0];
-		if (body) {
-			if (body.clientWidth) {
-				wx = body.clientWidth;
-				wy = body.clientHeight;
-			} else if (body.offsetWidth) {
-				wx = body.offsetWidth;
-				wy = body.offsetHeight;
-			}
-		}
-	}
-
-	return [wx, wy];
-}
-
-function element_size(e) {
-	var rect = e.getBoundingClientRect();
-	return [rect.width, rect.height];
-}
-
 function Dialog(title, body, buttons, options) {
 	if(!options)
 		options = {};
 
-	var inner = tag('div', {'class':'dialog_inner'});
+	var inner = tag('div', {'class':'dialog_inner dialog_active', 'style':'display: flex; max-height: 100%; flex-direction: column;'});
 
 	if(title) {
-		this.dom_title = tag('div', {'class':'dialog_title'}, title);
+		this.dom_title = tag('div', {'class':'dialog_title', 'style':'flex-shrink: 0;'}, title);
 		append(inner, this.dom_title);
 
 		// disable weird text selecty-ness
@@ -48,7 +17,7 @@ function Dialog(title, body, buttons, options) {
 	}
 
 	if(body) {
-		this.dom_body = tag('div', {'class':'dialog_body'}, body);
+		this.dom_body = tag('div', {'class':'dialog_body', 'style':'overflow: auto;'}, body);
 		append(inner, this.dom_body);
 	}
 
@@ -57,10 +26,15 @@ function Dialog(title, body, buttons, options) {
 		append(inner, this.dom_buttons);
 	}
 
-	var div = tag('div', {'class':'dialog dialog_active'}, inner);
-	div.style.position = 'fixed';
+	var outer = inner;
 
+	tools.listen(outer, 'click', function(evt) {
+		tools.event_stop_prop(evt);
+	});
+
+	var div = tag('div', {'style':'position: fixed; top: 0; left: 0; bottom: 0; right: 0; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border: 10px solid blue; box-sizing: border-box;'}, outer);
 	this.dom = div;
+
 	this.onclose = options.onclose;
 	var that = this;
 
@@ -69,7 +43,7 @@ function Dialog(title, body, buttons, options) {
 		this.modal_click_cb = function() {
 			that.close();
 		};
-		tools.listen(this.dom_modal, 'click', this.modal_click_cb);
+		tools.listen(this.dom, 'click', this.modal_click_cb);
 		document.body.appendChild(this.dom_modal);
 	}
 
@@ -79,9 +53,9 @@ function Dialog(title, body, buttons, options) {
 		that.close();
 	})
 
-	this.topLeft();
-	this.fitToWindow();
-	this.center();
+//	this.topLeft();
+//	this.fitToWindow();
+//	this.center();
 
 	return;
 }
@@ -91,18 +65,13 @@ function _modal() {
 	var body = document.body,
 		html = document.documentElement;
 
-	var height = Math.max(
-		body.scrollHeight, body.offsetHeight,
-		html.clientHeight, html.scrollHeight,
-		html.offsetHeight);
-
 	var div = tag('div', {'class':'dialog_modal'});
 
-	div.style.position = 'absolute';
+	div.style.position = 'fixed';
 	div.style.top = 0;
 	div.style.left = 0;
 	div.style.right = 0;
-	div.style.height = height + 'px';
+	div.style.bottom = 0;
 
 	document.body.style.overflow = 'hidden';
 
@@ -118,7 +87,7 @@ Dialog.prototype.buildButtons = function(buttons) {
 	if(!buttons || !buttons.length)
 		return;
 
-	var div = tag('div', {'class':'dialog_buttons'});
+	var div = tag('div', {'class':'dialog_buttons', 'style':'flex-shrink: 0;'});
 	var t = this;
 
 	var close = function() {
@@ -152,59 +121,6 @@ Dialog.prototype.buildButtons = function(buttons) {
 	return div;
 }
 
-Dialog.prototype.fitToWindow = function() {
-	if(!this.dom_body)
-		return;
-
-	this.dom.style.left = '0px';
-	this.dom.style.top = '0px';
-
-	var window_xy = window_size();
-
-	var ds, bs, spare;
-
-	ds = element_size(this.dom);
-	bs = element_size(this.dom_body);
-	spare = [
-		ds[0] - bs[0],
-		ds[1] - bs[1]
-	];
-
-	if(ds[0] > window_xy[0]) {
-		this.dom_body.style.width = (window_xy[0] - spare[0])+'px';
-		this.dom_body.style.overflowX = 'scroll';
-	}
-
-	if(ds[1] > window_xy[1]) {
-		this.dom_body.style.height = (window_xy[1] - spare[1])+'px';
-		this.dom_body.style.overflowY = 'scroll';
-	}
-
-	return;
-}
-
-Dialog.prototype.topLeft = function() {
-	this.dom.style.left = '0px';
-	this.dom.style.top = '0px';
-}
-
-Dialog.prototype.center = function() {
-	var div = this.dom;
-	var window_xy = window_size();
-
-	var l = Math.floor(window_xy[0]*0.5 - div.clientWidth*0.5);
-	var t = Math.floor(window_xy[1]*0.5 - div.clientHeight*0.5);
-
-	if(l < 0)
-		l = 0;
-
-	if(t < 0)
-		t = 0;
-
-	div.style.left = l+'px';
-	div.style.top = t+'px';
-}
-
 Dialog.prototype.close = function() {
 	if(this.onclose && !this.onclose())
 		return;
@@ -216,7 +132,7 @@ Dialog.prototype.close = function() {
 
 	if(this.dom_modal) {
 		if(this.modal_click_cb) {
-			tools.unlisten(this.dom_modal, 'click', this.modal_click_cb)
+			tools.unlisten(this.dom, 'click', this.modal_click_cb)
 			delete this.modal_click_cb;
 		}
 		_modal_close(this.dom_modal);

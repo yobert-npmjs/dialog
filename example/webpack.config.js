@@ -5,7 +5,7 @@ module.exports = {
 	entry: './src/main.js',
 	output: {
 		path: __dirname,
-		filename: 'main.js',
+		filename: 'main_packed.js',
 	},
 	resolve: {
 		extensions: ['.js', '.jsx', '.json'],
