@@ -2,6 +2,8 @@ var tools = require('yobert-tools');
 var tag = require('yobert-tag');
 var append = require('yobert-append');
 
+var stacked_modals = 0;
+
 function Dialog(title, body, buttons, options) {
 	if(!options)
 		options = {};
@@ -28,59 +30,30 @@ function Dialog(title, body, buttons, options) {
 
 	var outer = inner;
 
-	tools.listen(outer, 'click', function(evt) {
-		tools.event_stop_prop(evt);
-	});
-
-	var div = tag('div', {'style':'position: fixed; top: 0; left: 0; bottom: 0; right: 0; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center;'}, outer);
+	var div = tag('div', {'class':'dialog_modal', 'style':'position: fixed; top: 0; left: 0; bottom: 0; right: 0; display: flex; align-items: center; justify-content: center;'}, outer);
 	this.dom = div;
 
 	this.onclose = options.onclose;
 	var that = this;
 
-	if(options.modal) {
-		this.dom_modal = _modal();
-		this.modal_click_cb = function() {
-			that.close();
-		};
-		tools.listen(this.dom, 'click', this.modal_click_cb);
-		document.body.appendChild(this.dom_modal);
-	}
-
 	document.body.appendChild(div);
+	if(stacked_modals == 0) {
+		document.body.style.overflow = 'hidden';
+	}
+	stacked_modals++;
 
-	this.keydown_cb = tools.listen_key(window, 27, function() {
+	this.keydown_cb = tools.listen_key(document, 27, function() {
 		that.close();
 	})
 
-//	this.topLeft();
-//	this.fitToWindow();
-//	this.center();
+	this.modal_onclick = function(evt) {
+		tools.event_stop_prop(evt);
+		that.close();
+	}
+
+	tools.listen(document, 'click', this.modal_onclick);
 
 	return;
-}
-
-function _modal() {
-
-	var body = document.body,
-		html = document.documentElement;
-
-	var div = tag('div', {'class':'dialog_modal'});
-
-	div.style.position = 'fixed';
-	div.style.top = 0;
-	div.style.left = 0;
-	div.style.right = 0;
-	div.style.bottom = 0;
-
-	document.body.style.overflow = 'hidden';
-
-	return div;
-}
-function _modal_close(div) {
-	div.parentNode.removeChild(div);
-
-	document.body.style.overflow = 'auto';
 }
 
 Dialog.prototype.buildButtons = function(buttons) {
@@ -126,17 +99,17 @@ Dialog.prototype.close = function() {
 		return;
 
 	if(this.keydown_cb) {
-		tools.unlisten(window, 'keydown', this.keydown_cb);
+		tools.unlisten(document, 'keydown', this.keydown_cb);
 		delete this.keydown_cb;
 	}
+	if(this.modal_onclick) {
+		tools.unlisten(document, 'click', this.modal_onclick);
+		delete this.modal_onclick;
+	}
 
-	if(this.dom_modal) {
-		if(this.modal_click_cb) {
-			tools.unlisten(this.dom, 'click', this.modal_click_cb)
-			delete this.modal_click_cb;
-		}
-		_modal_close(this.dom_modal);
-		delete this.dom_modal;
+	stacked_modals--;
+	if(stacked_modals == 0) {
+		document.body.style.overflow = 'auto';
 	}
 
 	if(!this.dom)

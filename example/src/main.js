@@ -4,15 +4,14 @@ var dialog = require('yobert-dialog');
 var tools = require('yobert-tools');
 
 window.main = function() {
-
 	var body = document.createElement('div');
 
-//	setTimeout(function(){
 	ReactDOM.render(<div>
 		first content in body<br/>
 
 		<input type="text"     onChange={function(){console.log("changed text")}} /> <br/>
 		<input type="checkbox" onChange={function(){console.log("checked")}} />      <br/>
+		<input type="button"   onClick={function(){console.log("clicked")}} value="wtf"/>   <br/>
 
 		dude! things! crap! blah blah blah blah!<br/>stuff!<br/>stuff!<br/>stuff!<br/>
 		stuff!<br/>stuff!<br/>stuff!<br/>stuff!<br/>stuff!<br/>
@@ -22,18 +21,16 @@ window.main = function() {
 		stuff!<br/>stuff!<br/>stuff!<br/>stuff!<br/>stuff!<br/>
 		stuff!<br/>dude!<br/>
 		last content in body<br/>
-	</div>, body);
-//	}, 100);
+	</div>, body)
 
-	var d = new dialog('Test Dialog', body, ['Thing', 'Stuff'], {modal: false})
+	new dialog('Test Dialog', body, ['Thing', 'Stuff'], {modal: false})
 
-	var resize = function() {
-		d.topLeft()
-		d.fitToWindow()
-		d.center()
-	}
-
-	//resize();
-	//tools.listen(window, 'resize', resize);
+	var outside = document.getElementById('react-outside')
+	ReactDOM.render(<div>
+		hi there <br/>
+		<input type="text"     onChange={function(){console.log("changed text")}} /> <br/>
+		<input type="checkbox" onChange={function(){console.log("checked")}} />      <br/>
+		<input type="button"   onClick={function(){console.log("clicked")}} value="wtf"/>   <br/>
+	</div>, outside)
 }
 

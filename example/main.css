@@ -5,7 +5,7 @@ html, body {
 }
 
 .dialog_modal {
-	background-color: #fff;
+	background-color: #f99;
 	opacity: 0.7;
 }
 .dialog_inner {
@@ -16,4 +16,8 @@ html, body {
 }
 .dialog_buttons {
 	background-color: #aaa;
+}
+
+.dialog_container {
+	background-color: #9f9;
 }
